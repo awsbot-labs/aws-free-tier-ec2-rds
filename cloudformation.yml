@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: >-
+  AWSBot CloudFormation template: Creates an EC2 instance and RDS MySQL database under the free tier
+  limits provided by Amazon
+
+Parameters:
+
+  MasterUsername:
+    Description: The master username for the DB instance.
+    NoEcho: 'True'
+    Type: String
+
+  MasterUserPassword:
+    Description: The master password for the DB instance.
+    NoEcho: 'True'
+    Type: String
+
+  Environment:
+    Default: dev
+    Type: String
+    Description: The environment e.g. dev, test, prod
+    AllowedValues:
+      - dev
+      - test
+      - prod
+
+Resources:
+  DBInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBInstanceClass:
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+      VPCSecurityGroups: !Ref VPCSecurityGroups
+    DeletionPolicy: Snapshot
+
+   DBParameterGroup:
+     Type: 'AWS::RDS::DBParameterGroup'
+     Properties:
+       Family:
+       Parameters:
+       Tags:
+         - Key: Environment
+           Value: !Ref Environment
+
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: RDS subnet group
+      SubnetIds: !Ref SubnetIds
+
+Outputs:
+  RdsEndpoint:
+    Value: !GetAtt [ DBInstance, Endpoint.Address ]
